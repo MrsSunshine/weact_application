@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weact_application/services/auth.dart';
 
 class Signup extends StatefulWidget {
   @override
@@ -6,17 +7,20 @@ class Signup extends StatefulWidget {
 }
 
 class _State extends State<Signup> {
-  TextEditingController nameController = TextEditingController();
-  TextEditingController surnameController = TextEditingController();
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController againpasswordController = TextEditingController();
+  String password = "";
+  String email = "";
+  String passAgain = "";
+  String name = "";
+  String surname = "";
+  String error = "";
+  final AuthService _auth = AuthService();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-        title: Text("WeAct"),
+          title: Text("WeAct"),
         ),
         body: Padding(
             padding: EdgeInsets.all(10),
@@ -39,103 +43,138 @@ class _State extends State<Signup> {
                       'Sign in',
                       style: TextStyle(fontSize: 20),
                     )),
-                Container(
-                  padding: EdgeInsets.all(10),
-                  child: TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Name',
-                    ),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: <Widget>[
+                      TextFormField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Name',
+                        ),
+                        onChanged: (val) {
+                          setState(() => name = val);
+                        },
+                        validator: (val) => val.isEmpty ? 'Enter a name' : null,
+                      ),
+                      Padding(padding: EdgeInsets.all(5.0)),
+                      TextFormField(
+                        onChanged: (val) {
+                          setState(() => surname = val);
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Surname',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'Enter a surname' : null,
+                      ),
+                      Padding(padding: EdgeInsets.all(5.0)),
+                      TextFormField(
+                        onChanged: (val) {
+                          setState(() => email = val);
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Email',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'Enter an email' : null,
+                      ),
+                      Padding(padding: EdgeInsets.all(5.0)),
+                      TextFormField(
+                        obscureText: true,
+                        onChanged: (val) {
+                          setState(() => password = val);
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Password',
+                        ),
+                        validator: (val) => (val.length < 6)
+                            ? 'Enter a password 6+ chars long'
+                            : null,
+                      ),
+                      Padding(padding: EdgeInsets.all(5.0)),
+                      TextFormField(
+                        obscureText: true,
+                        onChanged: (val) {
+                          setState(() => passAgain = val);
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Repeat Password',
+                        ),
+                        validator: (val) => (val != password)
+                            ? 'The passwords do not coincide'
+                            : null,
+                      ),
+                    ],
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.all(10),
-                  child: TextField(
-                    controller: surnameController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Surname',
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(10),
-                  child: TextField(
-                    controller: usernameController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'User Name',
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                  child: TextField(
-                    obscureText: true,
-                    controller: passwordController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Password',
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                  child: TextField(
-                    obscureText: true,
-                    controller: againpasswordController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Repeat Password',
-                    ),
-                  ),
-                ),
-                FlatButton(
-                  onPressed: (){
-                    //forgot password screen
-                  },
-                  textColor: Colors.blue,
-                  child: Text('Forgot Password'),
-                ),
+                Padding(padding: EdgeInsets.all(5.0)),
                 Container(
                     height: 50,
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                    child: RaisedButton(
+                      textColor: Colors.white,
+                      color: Colors.blue,
+                      child: Text('Try the App!'),
+                      onPressed: () async {
+                        dynamic result = await _auth.signInAnon();
+                        if (result == null) {
+                          print("error signing in");
+                        } else {
+                          print("signed in");
+                          print(result.uid);
+                          Navigator.of(context).pushNamed('/mainpage');
+                        }
+                      },
+                    )),
+                Container(
+                    height: 50,
+                    padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                     child: RaisedButton(
                       textColor: Colors.white,
                       color: Colors.blue,
                       child: Text('Sign in'),
-                      onPressed: () {
-                        if(againpasswordController.text==passwordController.text) {
-                          print(nameController.text);
-                          print(surnameController.text);
-                          print(usernameController.text);
-                          print(passwordController.text);
-                          print(againpasswordController.text);
+                      onPressed: () async {
+                        if (_formKey.currentState.validate()) {
+                          dynamic result = await _auth
+                              .registerWithEmailAndPassword(email, password);
+                          if (result == null) {
+                            setState(
+                                () => error = 'please supply a valid email');
+                            print('please supply a valid email');
+                          }
+                        } else {
                           Navigator.pushNamed(context, '/mainpage');
                         }
-                        else{
-
-                        }
-                        },
+                      },
                     )),
+                Center(
+                  child: Text(
+                    error,
+                    style: TextStyle(color: Colors.red, fontSize: 14.0),
+                  ),
+                ),
                 Container(
                     child: Row(
-                      children: <Widget>[
-                        Text('Already have an account?'),
-                        FlatButton(
-                          textColor: Colors.blue,
-                          child: Text(
-                            'log in',
-                            style: TextStyle(fontSize: 20),
-                          ),
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/login');
-                          },
-                        )
-                      ],
-                      mainAxisAlignment: MainAxisAlignment.center,
-                    ))
+                  children: <Widget>[
+                    Text('Already have an account?'),
+                    FlatButton(
+                      textColor: Colors.blue,
+                      child: Text(
+                        'log in',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/login');
+                      },
+                    )
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.center,
+                ))
               ],
             )));
   }

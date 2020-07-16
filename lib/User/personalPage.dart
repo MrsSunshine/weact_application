@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:weact_application/services/auth.dart';
 
-class PersonalPage extends StatelessWidget {
+class PersonalPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => PersonalPageState();
+}
+
+class PersonalPageState extends State<PersonalPage> {
+  Choice _selectedChoice = choices[0]; // The app's "state".
+  final AuthService _auth = AuthService();
+  void _select(Choice choice) async {
+    // Causes the app to rebuild with the new _selectedChoice.
+    await _auth.signOut();
+    Navigator.of(context).pushNamed('/signup');
+  }
+
   final db = Firestore.instance;
   final String _fullName = "Serena Bono";
   final String _status = "Engineering Student";
@@ -156,6 +170,28 @@ class PersonalPage extends StatelessWidget {
     );
   }
 
+  Widget _buildPopMenuButton() {
+    return PopupMenuButton<Choice>(
+      onSelected: _select,
+      itemBuilder: (BuildContext context) {
+        return choices.map((Choice choice) {
+          return PopupMenuItem<Choice>(
+            value: choice,
+            child: Row(
+              children: <Widget>[
+                Text(choice.title, style: TextStyle(color: Colors.black)),
+                Icon(
+                  choice.icon,
+                  color: Colors.black,
+                ),
+              ],
+            ),
+          );
+        }).toList();
+      },
+    );
+  }
+
   Widget _BuildStatContainer1() {
     return Container(
       height: 60.0,
@@ -235,7 +271,13 @@ class PersonalPage extends StatelessWidget {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(title: Text("WeAct"), iconTheme: IconThemeData()),
+      appBar: AppBar(
+        title: Text("WeAct"),
+        iconTheme: IconThemeData(color: Colors.white),
+        actions: <Widget>[
+          _buildPopMenuButton(),
+        ],
+      ),
       body: Stack(
         children: <Widget>[
           _buildImageCover(screenSize),
@@ -262,6 +304,41 @@ class PersonalPage extends StatelessWidget {
             ),
           )
         ],
+      ),
+    );
+  }
+}
+
+class Choice {
+  const Choice({this.title, this.icon});
+
+  final String title;
+  final IconData icon;
+}
+
+const List<Choice> choices = const <Choice>[
+  const Choice(title: 'Logout', icon: Icons.exit_to_app)
+];
+
+class ChoiceCard extends StatelessWidget {
+  const ChoiceCard({Key key, this.choice}) : super(key: key);
+
+  final Choice choice;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle textStyle = Theme.of(context).textTheme.headline4;
+    return Card(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Icon(choice.icon, size: 128.0, color: textStyle.color),
+            Text(choice.title, style: textStyle),
+          ],
+        ),
       ),
     );
   }
