@@ -50,7 +50,7 @@ class _State extends State<Login> {
   Widget build(BuildContext context) {
     return Scrollbar(
         child: Scaffold(
-      appBar: AppBar(title: Text("WeAct"), iconTheme: IconThemeData()),
+      appBar: AppBar(title: Text("WeAct")),
       body: Padding(
         padding: EdgeInsets.all(10),
         child: ListView(children: <Widget>[
@@ -103,7 +103,7 @@ class _State extends State<Login> {
               ])),
           FlatButton(
             onPressed: () {
-              //forgot password screen
+              Navigator.pushNamed(context, '/resetPassword');
             },
             textColor: Colors.blue,
             child: Text('Forgot Password'),
@@ -112,13 +112,21 @@ class _State extends State<Login> {
               height: 50,
               padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
               child: RaisedButton(
-                textColor: Colors.white,
-                color: Colors.blue,
-                child: Text('Login'),
-                onPressed: () async {
-                  Navigator.pushNamed(context, '/mainpage');
-                },
-              )),
+                  textColor: Colors.white,
+                  color: Colors.blue,
+                  child: Text('Login'),
+                  onPressed: () async {
+                    if (_formKey.currentState.validate()) {
+                      dynamic result = await _auth.SigninWithEmailAndPassword(
+                          email, password);
+                      if (result == null) {
+                        setState(
+                            () => error = 'please supply a valid credentials');
+                      } else {
+                        Navigator.pushNamed(context, '/mainpage');
+                      }
+                    }
+                  })),
           //Sized Box
           SizedBox(
             height: 12,
@@ -139,15 +147,14 @@ class _State extends State<Login> {
             children: <Widget>[
               Text('Does not have account?'),
               FlatButton(
-                textColor: Colors.blue,
-                child: Text(
-                  'Sign in',
-                  style: TextStyle(fontSize: 20),
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/signup');
-                },
-              )
+                  textColor: Colors.blue,
+                  child: Text(
+                    'Sign in',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/signup');
+                  }),
             ],
             mainAxisAlignment: MainAxisAlignment.center,
           ))

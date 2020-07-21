@@ -117,6 +117,26 @@ class _State extends State<Signup> {
                     height: 50,
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                     child: RaisedButton(
+                        textColor: Colors.white,
+                        color: Colors.blue,
+                        child: Text('Sign in'),
+                        onPressed: () async {
+                          if (_formKey.currentState.validate()) {
+                            dynamic result = await _auth
+                                .registerWithEmailAndPassword(email, password);
+                            if (result == null) {
+                              setState(
+                                  () => error = 'please supply a valid email');
+                              print('please supply a valid email');
+                            } else {
+                              Navigator.of(context).pushNamed('/mainpage');
+                            }
+                          }
+                        })),
+                Container(
+                    height: 50,
+                    padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                    child: RaisedButton(
                       textColor: Colors.white,
                       color: Colors.blue,
                       child: Text('Try the App!'),
@@ -128,27 +148,6 @@ class _State extends State<Signup> {
                           print("signed in");
                           print(result.uid);
                           Navigator.of(context).pushNamed('/mainpage');
-                        }
-                      },
-                    )),
-                Container(
-                    height: 50,
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                    child: RaisedButton(
-                      textColor: Colors.white,
-                      color: Colors.blue,
-                      child: Text('Sign in'),
-                      onPressed: () async {
-                        if (_formKey.currentState.validate()) {
-                          dynamic result = await _auth
-                              .registerWithEmailAndPassword(email, password);
-                          if (result == null) {
-                            setState(
-                                () => error = 'please supply a valid email');
-                            print('please supply a valid email');
-                          }
-                        } else {
-                          Navigator.pushNamed(context, '/mainpage');
                         }
                       },
                     )),
